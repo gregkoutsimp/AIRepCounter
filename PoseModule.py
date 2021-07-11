@@ -1,7 +1,5 @@
 import cv2
 import mediapipe as mp
-import time
-import math
 import numpy as np
 
 class poseDetector():
@@ -16,32 +14,30 @@ class poseDetector():
         self.trackConf = trackConf
 
         self.mpDraw = mp.solutions.drawing_utils
+
         #Initialize pose class
         self.mpPose = mp.solutions.pose
-        # self.pose = self.mpPose.Pose(self.mode, self.upperBody, self.smooth,
-        #                              self.detConf, self.trackConf)
-        self.pose = self.mpPose.Pose(self.mode, 2, self.smooth,
+
+        self.pose = self.mpPose.Pose(self.mode, 1, self.smooth,
                                      self.detConf, self.trackConf)
 
     def findPose(self, img, draw = True):
-        height, width, channel = img.shape
-
-        m = height/256
 
         #Convert video to RGB
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img.flags.writeable = False
 
         self.results = self.pose.process(img)
 
         if self.results.pose_landmarks:
+            img.flags.writeable = True
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             if draw:
                 self.mpDraw.draw_landmarks(img, self.results.pose_landmarks, self.mpPose.POSE_CONNECTIONS)
 
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-
         return img
 
-    def getPosition(self, img, draw=True):
+    def getPosition(self, img, draw=False):
             self.lmList = []
             if self.results.pose_landmarks:
                 for id, lm in enumerate(self.results.pose_landmarks.landmark):
@@ -90,7 +86,7 @@ class poseDetector():
             cv2.circle(img, (c[0], c[1]), 10, (255, 0, 0), cv2.FILLED)
             cv2.circle(img, (c[0], c[1]), 15, (255, 0, 0), 2)
 
-            cv2.putText(img, str(int(angle)) , (b[0]+20, b[1]-50 ), cv2.FONT_HERSHEY_PLAIN,2,(0,0,255) ,2)
+            #cv2.putText(img, str(int(angle)) , (b[0]+20, b[1]-50 ), cv2.FONT_HERSHEY_PLAIN,2,(0,0,255) ,2)
 
         return angle
 
